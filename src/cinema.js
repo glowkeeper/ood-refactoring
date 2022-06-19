@@ -1,225 +1,197 @@
+const Screen = require("../src/screen")
+const Film = require("../src/film")
+const { ScreenVars, FilmVars } = require("./utils/vars")
+
 class Cinema {
 
+  #films
+  #screens
+
   constructor() {
-    this.films = []
-    this.screens = []
+    this.#films = []
+    this.#screens = []
+  }
+
+  convertToSeconds(time) {
+    const [hours, minutes] = time.split(':')
+    return Number(hours) * 60 * 60 + Number(minutes) * 60
+  }
+
+  isValidStartTime(filmName, screenName, startTime) {
+
+    const filmInfo = this.getFilmInfo(filmName)
+    const durationSeconds = this.convertToSeconds(filmInfo.duration)
+    const startTimeSeconds = this.convertToSeconds(startTime)
+    const endTimeSeconds = startTimeSeconds + durationSeconds
+    //console.log('start', startTime, startTimeSeconds, filmInfo.duration, durationSeconds, endTimeSeconds)
+   
+    const thisScreen = this.getScreen(screenName)
+    const showings = thisScreen.getShowings()
+    //console.log('showings', showings)
+    for (let i = 0; i < showings.length; i++) {
+      const showingStartTimeSeconds = this.convertToSeconds(showings[i].startTime)
+      const cleaningSeconds = this.convertToSeconds("0:20")
+      const showingEndTimeSeconds = showingStartTimeSeconds + durationSeconds + cleaningSeconds
+      //console.log('this showing', showings[i].startTime, showingStartTimeSeconds, showingEndTimeSeconds)
+      if((startTimeSeconds >= showingStartTimeSeconds && startTimeSeconds <= showingEndTimeSeconds) || 
+         (endTimeSeconds >= showingStartTimeSeconds && endTimeSeconds <= showingEndTimeSeconds) ||
+         (startTimeSeconds <= showingStartTimeSeconds && endTimeSeconds >= showingEndTimeSeconds)) {
+        return false
+      }
+    }
+    return true
+  }
+
+  isValidTime(time) {
+    return /^([0-1]?[0-9]|2[0-4]):([0-5][0-9])(:[0-5][0-9])?$/.test(time) 
+  }
+
+  isValidDuration(duration) {
+
+    if ( !Number(duration.replace(':','')) ) {
+      return false
+    }
+
+    return /^([0-1]?[0-9]|2[0-4]):([0-5][0-9])(:[0-5][0-9])?$/.test(duration)  
+  }
+
+  isValidRating(rating) {
+
+    return Object.keys(FilmVars.ratings).includes(rating)
+  }
+
+  getScreenExists(name) {
+
+    return this.#screens.some(screen => screen.getName() === name);
+  }
+
+  getScreens() {
+    return this.#screens
+  }
+
+  getScreen(name) {
+    return this.#screens.find(screen => screen.getName() === name)
+  }
+
+  getScreensInfo() {
+    const screenInfo = []
+    this.#screens.forEach(screen => {
+      const info = {
+        name: screen.getName(),
+        capacity: screen.getCapacity(),
+        showings: screen.getShowings()
+      }
+      screenInfo.push(info)
+    })
+    return screenInfo
+  }
+
+  getScreenInfo(name) {
+    const thisScreen = this.#screens.find(screen => screen.getName() === name)
+    const info = {
+      name: thisScreen.getName(),
+      capacity: thisScreen.getCapacity(),
+      showings: thisScreen.getShowings()
+    }
+    return info
   }
 
   //Add a new screen
-  save(screenName, capacity) {
-    if (capacity > 100) {
-      return 'Exceeded max capacity'
-    }
+  addScreen(name, capacity) {
+    if (this.getScreenExists(name) ) {
+      return false
+    } 
+    this.#screens.push(new Screen(name, capacity))
+    return true
+  }
 
-    //Check the screen doesn't already exist
-    let screen = null
-    for (let i=0;i<this.screens.length;i++) {
-      if (this.screens[i].name===screenName) {
-        screen = this.screens[i]
+  getFilmExists(name) {
+
+    return this.#films.some(film => film.getName() === name);
+  }
+
+  getFilms() {
+    return this.#films
+  }
+
+  getFilm(name) {
+    return this.#films.find(film => film.getName() === name)
+  }
+
+  getFilmsInfo() {
+    const filmInfo = []
+    this.#films.forEach(film => {
+      const info = {
+        name: film.getName(),
+        rating: film.getRating(),
+        duration: film.getDuration()
       }
-    }
-
-    if(screen!=null) {
-      return 'Screen already exists'
-    }
-
-    this.screens.push({
-      name: screenName,
-      capacity: capacity,
-      showings : []
+      filmInfo.push(info)
     })
+    return filmInfo
+  }
+
+  getFilmInfo(name) {
+    const thisFilm = this.#films.find(film => film.getName() === name)
+    const info = {
+      name: thisFilm.getName(),
+      rating: thisFilm.getRating(),
+      duration: thisFilm.getDuration()
+    }
+    return info
   }
 
   //Add a new film
-  addNew(movieName, r, duration) {
+  addFilm(name, rating, duration) {
 
-    //Check the film doesn't already exist
-    let movie = null
-    for (let i=0;i<this.films.length;i++) {
-      if (this.films[i].name==movieName) {
-        movie = this.films[i]
-      }
-    }
-
-    if(movie!=null) {
-      return 'Film already exists'
-    }
-
-    //Check the rating is valid
-    if (r!="U" && r!="PG") {
-      if (r!="12" && r!="15" && r!="18") {
-        return 'Invalid rating'
-      }
-    }
-    
-    //Check duration
-    const result = /^(\d?\d):(\d\d)$/.exec(duration)
-    if(result==null) {
-      return 'Invalid duration'
-    }
-
-    const hours = parseInt(result[1])
-    const mins = parseInt(result[2])
-    if(hours<=0 || mins>60) {
-      return 'Invalid duration'
-    }
-
-    this.films.push({name:movieName, rating:r, duration: duration})
+    if (this.getFilmExists(name) || 
+        !this.isValidRating(rating) || 
+        !this.isValidDuration(duration)) {
+      return false
+    } 
+    this.#films.push(new Film(name, rating, duration))
+    return true
   }
 
   //Add a showing for a specific film to a screen at the provided start time
-  add(movie, screenName, startTime) {
+  addShowing(filmName, screenName, startTime) {
 
-    let result = /^(\d?\d):(\d\d)$/.exec(startTime)
-    if(result==null) {
-      return 'Invalid start time'
+    if(!this.getFilmExists(filmName) || 
+       !this.getScreenExists(screenName) || 
+       !this.isValidTime(startTime) || 
+       !this.isValidStartTime(filmName, screenName, startTime)) {
+      return false
     }
 
-    const intendedStartTimeHours = parseInt(result[1])
-    const intendedStartTimeMinutes = parseInt(result[2])
-    if(intendedStartTimeHours<=0 || intendedStartTimeMinutes>60) {
-      return 'Invalid start time'
-    }
+    const thisScreen = this.#screens.find(screen => screen.getName() === screenName)
 
-
-    let film = null
-    //Find the film by name
-    for (let i=0;i<this.films.length;i++) {
-      if (this.films[i].name==movie) {
-        film = this.films[i]
-      }
-    }
-
-    if(film===null) {
-      return 'Invalid film'
-    }
-
-    //From duration, work out intended end time
-    //if end time is over midnight, it's an error
-    //Check duration
-    result = /^(\d?\d):(\d\d)$/.exec(film.duration)
-    if(result==null) {
-      return 'Invalid duration'
-    }
-
-    const durationHours = parseInt(result[1])
-    const durationMins = parseInt(result[2])
-    
-    //Add the running time to the duration
-    let intendedEndTimeHours = intendedStartTimeHours + durationHours
-    
-    //It takes 20 minutes to clean the screen so add on 20 minutes to the duration 
-    //when working out the end time
-    let intendedEndTimeMinutes = intendedStartTimeMinutes + durationMins + 20
-    if (intendedEndTimeMinutes>=60) {
-      intendedEndTimeHours += Math.floor(intendedEndTimeMinutes/60)
-      intendedEndTimeMinutes = intendedEndTimeMinutes%60
-    }
-
-    if(intendedEndTimeHours>=24) {
-      return 'Invalid start time - film ends after midnight'
-    }
-
-    //Find the screen by name
-    let theatre = null
-    for (let i=0;i<this.screens.length;i++) {
-      if (this.screens[i].name==screenName) {
-        theatre = this.screens[i]
-      }
-    }
-
-    if(theatre===null) {
-      return 'Invalid screen'
-    }
-    
-    //Go through all existing showings for this film and make
-    //sure the start time does not overlap 
-    let error = false
-    for(let i=0;i<theatre.showings.length;i++) {
-
-      //Get the start time in hours and minutes
-      const startTime = theatre.showings[i].startTime
-      result = /^(\d?\d):(\d\d)$/.exec(startTime)
-      if(result==null) {
-        return 'Invalid start time'
-      }
-  
-      const startTimeHours = parseInt(result[1])
-      const startTimeMins = parseInt(result[2])
-      if(startTimeHours<=0 || startTimeMins>60) {
-        return 'Invalid start time'
-      }
-
-      //Get the end time in hours and minutes
-      const endTime = theatre.showings[i].endTime
-      result = /^(\d?\d):(\d\d)$/.exec(endTime)
-      if(result==null) {
-        return 'Invalid end time'
-      }
-  
-      const endTimeHours = parseInt(result[1])
-      const endTimeMins = parseInt(result[2])
-      if(endTimeHours<=0 || endTimeMins>60) {
-        return 'Invalid end time'
-      }
-
-      //if intended start time is between start and end
-      const d1 = new Date()
-      d1.setMilliseconds(0)
-      d1.setSeconds(0)
-      d1.setMinutes(intendedStartTimeMinutes)
-      d1.setHours(intendedStartTimeHours)
-
-      const d2 = new Date()
-      d2.setMilliseconds(0)
-      d2.setSeconds(0)
-      d2.setMinutes(intendedEndTimeMinutes)
-      d2.setHours(intendedEndTimeHours)
-
-      const d3 = new Date()
-      d3.setMilliseconds(0)
-      d3.setSeconds(0)
-      d3.setMinutes(startTimeMins)
-      d3.setHours(startTimeHours)
-
-      const d4 = new Date()
-      d4.setMilliseconds(0)
-      d4.setSeconds(0)
-      d4.setMinutes(endTimeMins)
-      d4.setHours(endTimeHours)
-
-      if ((d1 > d3 && d1 < d4) || (d2 > d3 && d2 < d4) || (d1 < d3 && d2 > d4) ) {
-        error = true
-        break
-      }
-    }
-
-    if(error) {
-      return 'Time unavailable'
-    }
-
-    //Add the new start time and end time to the showing
-    theatre.showings.push({
-      film: film,
-      startTime: startTime,
-      endTime: intendedEndTimeHours + ":" + intendedEndTimeMinutes
-    })
+    thisScreen.setShowing(filmName, startTime)
+    return true  
   } 
 
-  allShowings() {
-    let showings = {}
-    for (let i=0;i<this.screens.length;i++) {
-      const screen = this.screens[i]
-      for(let j=0;j<screen.showings.length;j++) {
-        const showing = screen.showings[j]
-        if (!showings[showing.film.name]) {
-          showings[showing.film.name] = []
+  getShowings() {
+
+    const showingsInfo = []
+    this.#screens.forEach(screen => {
+     
+      const showings = screen.getShowings()
+      showings.forEach(showing => {
+
+        const filmInfo = this.getFilmInfo(showing.film)
+        const info = {
+          film: showing.film,
+          screen: screen.getName(),
+          startTime: showing.startTime,
+          rating: filmInfo.rating,
+          duration: filmInfo.duration
         }
-        showings[showing.film.name].push( `${screen.name} ${showing.film.name} (${showing.film.rating}) ${showing.startTime} - ${showing.endTime}`)
-      }
-    }
-  
-    return showings
+
+        showingsInfo.push(info)
+      })
+    })
+
+    //console.log('showings', showingsInfo)
+    return showingsInfo
   }
 }
 

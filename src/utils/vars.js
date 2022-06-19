@@ -1,5 +1,6 @@
 const Screen = {
-    maxCapacity: 100
+    maxCapacity: 100,
+    cleanTime: "0:20"
 }
 
 const Film = {
@@ -26,8 +27,6 @@ const Film = {
         }
     }
 }
-
-const validRatings = ["U", "PG", "12", "15", "18"]
 
 module.exports = {
     ScreenVars: Screen,

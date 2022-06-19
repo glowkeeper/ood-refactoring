@@ -1,4 +1,6 @@
-const maxCapacity = 100
+
+const { ScreenVars } = require("./utils/vars")
+const convertToSeconds = require("./utils/utils")
 
 class Screen {
 
@@ -10,6 +12,27 @@ class Screen {
     this.#name = name
     this.#capacity = capacity
     this.#showings = []
+  }
+
+  isValidTimings(startTime, duration) {
+
+    const durationSeconds = convertToSeconds(duration)
+    const startTimeSeconds = convertToSeconds(startTime)
+    const endTimeSeconds = startTimeSeconds + durationSeconds
+    //console.log('start', startTime, startTimeSeconds, filmInfo.duration, durationSeconds, endTimeSeconds)
+   
+    for (let i = 0; i < this.#showings.length; i++) {
+      const showingStartTimeSeconds = convertToSeconds(this.#showings[i].startTime)
+      const cleaningSeconds = convertToSeconds(ScreenVars.cleanTime)
+      const showingEndTimeSeconds = showingStartTimeSeconds + durationSeconds + cleaningSeconds
+      //console.log('this showing', this.#showings[i].startTime, showingStartTimeSeconds, showingEndTimeSeconds)
+      if((startTimeSeconds >= showingStartTimeSeconds && startTimeSeconds <= showingEndTimeSeconds) || 
+         (endTimeSeconds >= showingStartTimeSeconds && endTimeSeconds <= showingEndTimeSeconds) ||
+         (startTimeSeconds <= showingStartTimeSeconds && endTimeSeconds >= showingEndTimeSeconds)) {
+        return false
+      }
+    }
+    return true
   }
 
   get () {

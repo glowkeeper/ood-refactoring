@@ -1,4 +1,4 @@
-
+// const { FilmVars } = require("./utils/vars")
 
 class Film {
 

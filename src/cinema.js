@@ -1,6 +1,6 @@
 const Screen = require("../src/screen")
 const Film = require("../src/film")
-const { ScreenVars, FilmVars } = require("./utils/vars")
+const { FilmVars } = require("./utils/vars")
 
 class Cinema {
 
@@ -12,34 +12,11 @@ class Cinema {
     this.#screens = []
   }
 
-  convertToSeconds(time) {
-    const [hours, minutes] = time.split(':')
-    return Number(hours) * 60 * 60 + Number(minutes) * 60
-  }
+  isValidTimings(filmName, screenName, startTime) {
 
-  isValidStartTime(filmName, screenName, startTime) {
-
-    const filmInfo = this.getFilmInfo(filmName)
-    const durationSeconds = this.convertToSeconds(filmInfo.duration)
-    const startTimeSeconds = this.convertToSeconds(startTime)
-    const endTimeSeconds = startTimeSeconds + durationSeconds
-    //console.log('start', startTime, startTimeSeconds, filmInfo.duration, durationSeconds, endTimeSeconds)
-   
+    const filmInfo = this.getFilmInfo(filmName)   
     const thisScreen = this.getScreen(screenName)
-    const showings = thisScreen.getShowings()
-    //console.log('showings', showings)
-    for (let i = 0; i < showings.length; i++) {
-      const showingStartTimeSeconds = this.convertToSeconds(showings[i].startTime)
-      const cleaningSeconds = this.convertToSeconds("0:20")
-      const showingEndTimeSeconds = showingStartTimeSeconds + durationSeconds + cleaningSeconds
-      //console.log('this showing', showings[i].startTime, showingStartTimeSeconds, showingEndTimeSeconds)
-      if((startTimeSeconds >= showingStartTimeSeconds && startTimeSeconds <= showingEndTimeSeconds) || 
-         (endTimeSeconds >= showingStartTimeSeconds && endTimeSeconds <= showingEndTimeSeconds) ||
-         (startTimeSeconds <= showingStartTimeSeconds && endTimeSeconds >= showingEndTimeSeconds)) {
-        return false
-      }
-    }
-    return true
+    return thisScreen.isValidTimings(startTime, filmInfo.duration)
   }
 
   isValidTime(time) {
@@ -140,8 +117,7 @@ class Cinema {
     }
     return info
   }
-
-  //Add a new film
+  
   addFilm(name, rating, duration) {
 
     if (this.getFilmExists(name) || 
@@ -152,14 +128,13 @@ class Cinema {
     this.#films.push(new Film(name, rating, duration))
     return true
   }
-
-  //Add a showing for a specific film to a screen at the provided start time
+  
   addShowing(filmName, screenName, startTime) {
 
     if(!this.getFilmExists(filmName) || 
        !this.getScreenExists(screenName) || 
        !this.isValidTime(startTime) || 
-       !this.isValidStartTime(filmName, screenName, startTime)) {
+       !this.isValidTimings(filmName, screenName, startTime)) {
       return false
     }
 

@@ -1,6 +1,11 @@
 const Screen = require("../src/screen")
 const Film = require("../src/film")
 const { FilmVars } = require("./utils/vars")
+const { 
+  isValidTime,
+  isValidDuration,
+  isValidRating
+} = require("./utils/utils")
 
 class Cinema {
 
@@ -17,24 +22,6 @@ class Cinema {
     const filmInfo = this.getFilmInfo(filmName)   
     const thisScreen = this.getScreen(screenName)
     return thisScreen.isValidTimings(startTime, filmInfo.duration)
-  }
-
-  isValidTime(time) {
-    return /^([0-1]?[0-9]|2[0-4]):([0-5][0-9])(:[0-5][0-9])?$/.test(time) 
-  }
-
-  isValidDuration(duration) {
-
-    if ( !Number(duration.replace(':','')) ) {
-      return false
-    }
-
-    return /^([0-1]?[0-9]|2[0-4]):([0-5][0-9])(:[0-5][0-9])?$/.test(duration)  
-  }
-
-  isValidRating(rating) {
-
-    return Object.keys(FilmVars.ratings).includes(rating)
   }
 
   getScreenExists(name) {
@@ -121,8 +108,8 @@ class Cinema {
   addFilm(name, rating, duration) {
 
     if (this.getFilmExists(name) || 
-        !this.isValidRating(rating) || 
-        !this.isValidDuration(duration)) {
+        !isValidRating(rating) || 
+        !isValidDuration(duration)) {
       return false
     } 
     this.#films.push(new Film(name, rating, duration))
@@ -133,7 +120,7 @@ class Cinema {
 
     if(!this.getFilmExists(filmName) || 
        !this.getScreenExists(screenName) || 
-       !this.isValidTime(startTime) || 
+       !isValidTime(startTime) || 
        !this.isValidTimings(filmName, screenName, startTime)) {
       return false
     }

@@ -1,6 +1,6 @@
 
 const { ScreenVars } = require("./utils/vars")
-const convertToSeconds = require("./utils/utils")
+const { convertToSeconds } = require("./utils/utils")
 
 class Screen {
 
@@ -19,7 +19,7 @@ class Screen {
     const durationSeconds = convertToSeconds(duration)
     const startTimeSeconds = convertToSeconds(startTime)
     const endTimeSeconds = startTimeSeconds + durationSeconds
-    //console.log('start', startTime, startTimeSeconds, filmInfo.duration, durationSeconds, endTimeSeconds)
+    //console.log('start', startTime, startTimeSeconds, duration, durationSeconds, endTimeSeconds)
    
     for (let i = 0; i < this.#showings.length; i++) {
       const showingStartTimeSeconds = convertToSeconds(this.#showings[i].startTime)

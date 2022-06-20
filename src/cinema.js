@@ -23,6 +23,10 @@ class Cinema {
     return thisScreen.isValidTimings(startTime, filmInfo.duration)
   }
 
+  get () {
+    return this
+  }
+
   getScreenExists(name) {
 
     return this.#screens.some(screen => screen.getName() === name);
@@ -59,7 +63,6 @@ class Cinema {
     return info
   }
 
-  //Add a new screen
   addScreen(name, capacity) {
     if (this.getScreenExists(name) ) {
       return false

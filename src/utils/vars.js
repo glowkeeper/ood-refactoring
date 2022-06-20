@@ -5,23 +5,23 @@ const screenVars = {
 
 const filmVars = {
     ratings: {
-        U: {
-            name: 'PG',
+        'U': {
+            name: 'U',
             description: ''
         },
-        PG: {
+        'PG': {
             name: 'PG',
-            description: ''
+            description: 'Parental Guidance'
         },
-        12: {
+        '12': {
             name: '12',
             description: ''
         },
-        15: {
+        '15': {
             name: '15',
             description: ''
         },
-        18: {
+        '18': {
             name: '18',
             description: ''
         }

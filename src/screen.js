@@ -1,5 +1,5 @@
 
-const { ScreenVars } = require("./utils/vars")
+const { screenVars } = require("./utils/vars")
 const { convertToSeconds } = require("./utils/utils")
 
 class Screen {
@@ -23,7 +23,7 @@ class Screen {
    
     for (let i = 0; i < this.#showings.length; i++) {
       const showingStartTimeSeconds = convertToSeconds(this.#showings[i].startTime)
-      const cleaningSeconds = convertToSeconds(ScreenVars.cleanTime)
+      const cleaningSeconds = convertToSeconds(screenVars.cleanTime)
       const showingEndTimeSeconds = showingStartTimeSeconds + durationSeconds + cleaningSeconds
       //console.log('this showing', this.#showings[i].startTime, showingStartTimeSeconds, showingEndTimeSeconds)
       if((startTimeSeconds >= showingStartTimeSeconds && startTimeSeconds <= showingEndTimeSeconds) || 

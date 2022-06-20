@@ -1,9 +1,9 @@
-const Screen = {
+const screenVars = {
     maxCapacity: 100,
     cleanTime: "0:20"
 }
 
-const Film = {
+const filmVars = {
     ratings: {
         U: {
             name: 'PG',
@@ -29,6 +29,6 @@ const Film = {
 }
 
 module.exports = {
-    ScreenVars: Screen,
-    FilmVars: Film
+    screenVars,
+    filmVars
 }

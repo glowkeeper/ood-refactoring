@@ -1,6 +1,5 @@
 const Screen = require("../src/screen")
 const Film = require("../src/film")
-const { FilmVars } = require("./utils/vars")
 const { 
   isValidTime,
   isValidDuration,

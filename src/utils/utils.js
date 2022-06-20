@@ -1,4 +1,4 @@
-const { FilmVars } = require("./vars")
+const { filmVars } = require("./vars")
 
 const convertToSeconds = (time) => {
     const [hours, minutes] = time.split(':')
@@ -20,7 +20,7 @@ const isValidDuration = (duration) => {
 
 const isValidRating = (rating) => {
 
-    return Object.keys(FilmVars.ratings).includes(rating)
+    return Object.keys(filmVars.ratings).includes(rating)
 }
 
 module.exports = { 
